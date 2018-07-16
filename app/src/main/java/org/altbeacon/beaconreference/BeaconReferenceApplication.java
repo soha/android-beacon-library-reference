@@ -32,6 +32,11 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         super.onCreate();
         BeaconManager beaconManager = org.altbeacon.beacon.BeaconManager.getInstanceForApplication(this);
 
+        // iBeaconのデータを認識するためのParserフォーマット
+        final String IBEACON_FORMAT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
+        beaconManager.getBeaconParsers()
+                .add(new BeaconParser().setBeaconLayout(IBEACON_FORMAT));
+
         // By default the AndroidBeaconLibrary will only find AltBeacons.  If you wish to make it
         // find a different type of beacon, you must specify the byte layout for that beacon's
         // advertisement with a line like below.  The example shows how to find a beacon with the
@@ -64,8 +69,14 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         // cycle that would otherwise be disallowed by the operating system.
         //
         //beaconManager.setEnableScheduledScanJobs(false);
-        //beaconManager.setBackgroundBetweenScanPeriod(0);
+        //nbeaconManager.setBackgroundBetweenScanPeriod(0);
         //beaconManager.setBackgroundScanPeriod(1100);
+
+        //beaconManager.setEnableScheduledScanJobs(true);
+        //beaconManager.setBackgroundMode(true);
+        beaconManager.setBackgroundBetweenScanPeriod(0);
+        beaconManager.setBackgroundScanPeriod(1100);
+        beaconManager.setDebug(true);
 
         Log.d(TAG, "setting up background monitoring for beacons and power saving");
         // wake up the app when a beacon is seen
@@ -87,7 +98,7 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
     public void didEnterRegion(Region arg0) {
         // In this example, this class sends a notification to the user whenever a Beacon
         // matching a Region (defined above) are first seen.
-        Log.d(TAG, "did enter region.");
+        Log.i(TAG, "did enter region.");
         if (!haveDetectedBeaconsSinceBoot) {
             Log.d(TAG, "auto launching MainActivity");
 
@@ -101,16 +112,16 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
             this.startActivity(intent);
             haveDetectedBeaconsSinceBoot = true;
         } else {
-            if (monitoringActivity != null) {
+//            if (monitoringActivity != null) {
                 // If the Monitoring Activity is visible, we log info about the beacons we have
                 // seen on its display
-                monitoringActivity.logToDisplay("I see a beacon again" );
-            } else {
+//                monitoringActivity.logToDisplay("I see a beacon again" );
+//            } else {
                 // If we have already seen beacons before, but the monitoring activity is not in
                 // the foreground, we send a notification to the user on subsequent detections.
-                Log.d(TAG, "Sending notification.");
+                Log.i(TAG, "Sending notification.");
                 sendNotification();
-            }
+//            }
         }
 
 
@@ -118,6 +129,7 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
 
     @Override
     public void didExitRegion(Region region) {
+        Log.i(TAG, "did exit region.");
         if (monitoringActivity != null) {
             monitoringActivity.logToDisplay("I no longer see a beacon.");
         }
@@ -125,6 +137,7 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
 
     @Override
     public void didDetermineStateForRegion(int state, Region region) {
+        Log.i(TAG, "did DetermineState region.");
         if (monitoringActivity != null) {
             monitoringActivity.logToDisplay("I have just switched from seeing/not seeing beacons: " + state);
         }
